@@ -1,0 +1,22 @@
+{
+  "name": "pathfinding-mazegeneration-visualizer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IsmailElShinnawy/Pathfinding-Visualizer.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/IsmailElShinnawy/Pathfinding-Visualizer/issues"
+  },
+  "homepage": "https://github.com/IsmailElShinnawy/Pathfinding-Visualizer#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
