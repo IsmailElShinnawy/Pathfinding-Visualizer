@@ -5,38 +5,12 @@
     <title>pathfinding and mazegeneration</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script>
-        const createTableHTML = () => {
-            const size = 25;
-            const rows = 30;
-            const cols = Math.floor($(document).width() / size);
-            let tableHTML = '';
-            for (r = 0; r < rows; ++r) {
-                tableHTML += `<tr id=${r}>`;
-                for (c = 0; c < cols; ++c) {
-                    if (r == Math.floor(rows / 2) && c == Math.floor(cols / 4)) {
-                        tableHTML += `<td id=${c} width="${size}px" height="${size}px"><img src="icons/arrow.svg" alt="Start point"></td>`;
-                    } else if (r == Math.floor(rows / 2) && c == Math.floor(3 * cols / 4)) {
-                        tableHTML += `<td id=${c} width="${size}px" height="${size}px"><img src="icons/pin_point.svg" alt="End point"></td>`;
-                    } else {
-                        tableHTML += `<td id=${c} width="${size}px" height="${size}px"></td>`;
-                    }
-                }
-                tableHTML += '</td>';
-            }
-            $('table#board').html(tableHTML);
-        }
-
-        $(document).ready(() => {
-            createTableHTML();
-            $(window).resize(createTableHTML);
-        });
-    </script>
+    <script type="module" src="index.js"></script>
 </head>
 
 <body>
-    <table id="board" style="border-collapse: collapse">
-    </table>
+    <div id="board">
+    </div>
 </body>
 
 </html>
