@@ -1,50 +1,90 @@
-export default function Board(selector, size) {
-    this.element = $(selector);
-    this.size = size;
+const size = 25;
+const cells = []; //0 -> empty, 1 -> wall, 2 -> weight, 3 -> start, 4 -> end
+const rows = Math.floor(($(window).height() - 300) / size);
+const cols = Math.floor($(window).width() / size);
 
-    this.initialize = () => {
-        this.rows = Math.floor(($(window).height() - 300) / this.size);
-        this.cols = Math.floor($(window).width() / this.size);
-        this.element.html('<table id="board" style="border-collapse: collapse"></table>');
-        let tableHTML = '';
-        for (let r = 0; r < this.rows; ++r) {
-            tableHTML += `<tr id=${r}>`;
-            for (let c = 0; c < this.cols; ++c) {
-                if (r == Math.floor(this.rows / 2) && c == Math.floor(this.cols / 4)) {
-                    tableHTML += `<td id=${c} class="unvisited weightless start" width="${this.size}px" height="${this.size}px"><img src=\"icons/arrow.svg\" alt=\"Start point\"></td>`;
-                } else if (r == Math.floor(this.rows / 2) && c == Math.floor(3 * this.cols / 4)) {
-                    tableHTML += `<td id=${c} class="unvisited weightless end" width="${this.size}px" height="${this.size}px"><img src=\"icons/pin_point.svg\" alt=\"End point\"></td>`;
-                } else {
-                    tableHTML += `<td id=${c} class="unvisited weightless" width="${this.size}px" height="${this.size}px"></td>`;
-                }
+const initialize = () => {
+    $('div#board').html('<table id="board" style="border-collapse: collapse"></table>');
+    let tableHTML = '';
+    for (let r = 0; r < rows; ++r) {
+        tableHTML += `<tr id=\"${r}\">`;
+        cells[r] = [];
+        for (let c = 0; c < cols; ++c) {
+            if (r == Math.floor(rows / 2) && c == Math.floor(cols / 4)) {
+                tableHTML += `<td id=\"${r}-${c}\" class="start" width="${size}px" height="${size}px"></td>`;
+                cells[r][c] = 3;
+            } else if (r == Math.floor(rows / 2) && c == Math.floor(3 * cols / 4)) {
+                tableHTML += `<td id=\"${r}-${c}\" class="end" width="${size}px" height="${size}px"></td>`;
+                cells[r][c] = 4;
+            } else {
+                tableHTML += `<td id=\"${r}-${c}\" class width="${size}px" height="${size}px"></td>`;
+                cells[r][c] = 0;
             }
-            tableHTML += '</tr>';
         }
-        $('table#board').html(tableHTML);
+        tableHTML += '</tr>';
     }
+    $('table#board').html(tableHTML);
+}
 
-    this.addEventListeners = () => {
-        let mouseDown = false;
-        $('div#board').mouseleave(() => {
-            mouseDown = false;
-        });
+const addEventListeners = () => {
+    let mouseDown = false;
+    let selected = -1;
 
-        $('tr[id] td[id]').on({
-            mousedown: function () {
-                mouseDown = true;
-                $(this)
-                    .toggleClass('wall')
-            },
-            mouseenter: function () {
-                if (mouseDown) {
-                    $(this)
-                        .toggleClass('wall')
-                }
-            },
-            mouseup: function () {
-                mouseDown = false;
+    $('div#board').mouseleave(() => {
+        mouseDown = false;
+    });
+    $('td[id]').on({
+        mousedown: (e) => {
+            mouseDown = true;
+            let id = $(e.target).attr('id').split('-');
+            let row = id[0];
+            let col = id[1];
+            selected = cells[row][col];
+            let classList = $(e.target).attr('class').split(/\s+/);
+            if (classList.length == 0 || (!classList.includes('start') && !classList.includes('end'))) {
+                $(e.target).toggleClass('wall');
+                cells[row][col] = $(e.target).hasClass('wall') ? 1 : 0;
             }
-        });
-    }
-
+        },
+        mouseup: (e) => {
+            let id = $(e.target).attr('id').split('-');
+            let row = id[0];
+            let col = id[1];
+            if (selected == 3 || selected == 4) {
+                $(e.target).removeClass('wall');
+                cells[row][col] = selected;
+            }
+            mouseDown = false;
+            selected = -1;
+        },
+        mouseenter: (e) => {
+            let id = $(e.target).attr('id').split('-');
+            let row = id[0];
+            let col = id[1];
+            if (selected == 3) {
+                $(e.target).addClass('start');
+            } else if (selected == 4) {
+                $(e.target).addClass('end');
+            } else if (mouseDown) {
+                let classList = $(e.target).attr('class').split(/\s+/);
+                if (!classList.includes('start') && !classList.includes('end')) {
+                    $(e.target).toggleClass('wall');
+                    cells[row][col] = $(e.target).hasClass('wall') ? 1 : 0;
+                }
+            }
+        },
+        mouseleave: (e) => {
+            let id = $(e.target).attr('id').split('-');
+            let row = id[0];
+            let col = id[1];
+            let classList = $(e.target).attr('class').split(/\s+/);
+            if (selected == 3) {
+                $(e.target).removeClass('start');
+                cells[row][col] = cells[row][col] == 3 ? 0 : cells[row][col];
+            } else if (selected == 4) {
+                $(e.target).removeClass('end');
+                cells[row][col] = cells[row][col] == 4 ? 0 : cells[row][col];
+            }
+        }
+    });
 }
