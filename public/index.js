@@ -7,6 +7,15 @@ $(document).ready(() => {
         setMaze();
         animateMazeBorder(0);
     });
+    $('button#dij').click(() => {
+        dij();
+    });
+    $('button#astar').click(() => {
+        astar();
+    });
+    $('button#clear-board').click(() => {
+        clearWalls();
+    });
 
 });
 

@@ -32,8 +32,11 @@ const clearWalls = () => {
         for (let c = 0; c < cols; ++c) {
             if (cells[r][c] == 1) {
                 cells[r][c] = 0;
-                $(`td[id=${r}-${c}]`).removeClass('wall');
             }
+            const cell = $(`td[id=${r}-${c}]`);
+            if (cell.hasClass('wall')) cell.removeClass('wall');
+            if (cell.hasClass('visited')) cell.removeClass('visited');
+            if (cell.hasClass('path')) cell.removeClass('path');
         }
     }
 }
@@ -140,17 +143,148 @@ const removeWallBetween = (idx1, idx2) => {
     }
 }
 
-const shuffleArray = (array) => {
-    for (var i = array.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
-        var temp = array[i];
-        array[i] = array[j];
-        array[j] = temp;
+const dij = () => {
+    const startId = $('td[class=start]').attr('id').split('-');
+    const endId = $('td[class=end]').attr('id').split('-');
+    const startIdx = get1DIdx(parseInt(startId[0]), parseInt(startId[1]));
+    const endIdx = get1DIdx(parseInt(endId[0]), parseInt(endId[1]));
+    const dis = new Array(rows * cols);
+    const visited = new Array(rows * cols);
+    const prev = new Array(rows * cols);
+    for (let i = 0; i < dis.length; ++i) {
+        dis[i] = 1e9;
+        visited[i] = false;
+        prev[i] = i;
     }
+
+    const pq = new PriorityQueue();
+    pq.push({ idx: startIdx, weight: 0 });
+    dis[startIdx] = 0;
+    while (!pq._isEmpty()) {
+        const current = pq.pop();
+        visited[current.idx] = true;
+        const row = Math.floor(current.idx / cols);
+        const col = current.idx % cols;
+        setTimeout(() => {
+            $(`td[id=${row}-${col}]`).addClass('visited');
+        }, 200);
+        if (current.idx == endIdx) {
+            console.log(`found a path of ${dis[endIdx]} nodes`);
+            setTimeout(() => {
+                animatePath(prev, current.idx);
+            }, 4000);
+            return;
+        }
+        if (row > 0 && cells[row - 1][col] != 1 && dis[get1DIdx(row - 1, col)] > dis[current.idx] + 1) {
+            dis[get1DIdx(row - 1, col)] = dis[current.idx] + 1;
+            prev[get1DIdx(row - 1, col)] = current.idx;
+            pq.push({ idx: get1DIdx(row - 1, col), weight: dis[get1DIdx(row - 1, col)] });
+        }
+        if (row < rows - 1 && cells[row + 1][col] != 1 && dis[get1DIdx(row + 1, col)] > dis[current.idx] + 1) {
+            dis[get1DIdx(row + 1, col)] = dis[current.idx] + 1;
+            prev[get1DIdx(row + 1, col)] = current.idx;
+            pq.push({ idx: get1DIdx(row + 1, col), weight: dis[get1DIdx(row + 1, col)] });
+        }
+        if (col > 0 && cells[row][col - 1] != 1 && dis[get1DIdx(row, col - 1)] > dis[current.idx] + 1) {
+            dis[get1DIdx(row, col - 1)] = dis[current.idx] + 1;
+            prev[get1DIdx(row, col - 1)] = current.idx;
+            pq.push({ idx: get1DIdx(row, col - 1), weight: dis[get1DIdx(row, col - 1)] });
+        }
+        if (col < cols - 1 && cells[row][col + 1] != 1 && dis[get1DIdx(row, col + 1)] > dis[current.idx] + 1) {
+            dis[get1DIdx(row, col + 1)] = dis[current.idx] + 1;
+            prev[get1DIdx(row, col + 1)] = current.idx;
+            pq.push({ idx: get1DIdx(row, col + 1), weight: dis[get1DIdx(row, col + 1)] });
+        }
+    }
+    console.log('no path :(');
 }
 
-const get1DIdx = (row, col) => {
-    return row * cols + col;
+const astar = () => {
+    const startId = $('td[class=start]').attr('id').split('-');
+    const endId = $('td[class=end]').attr('id').split('-');
+    const startIdx = get1DIdx(parseInt(startId[0]), parseInt(startId[1]));
+    const startR = parseInt(startId[0]);
+    const startC = parseInt(startId[1]);
+    const endIdx = get1DIdx(parseInt(endId[0]), parseInt(endId[1]));
+    const endR = parseInt(endId[0]);
+    const endC = parseInt(endId[1]);
+    const fScore = new Array(rows * cols);
+    const visited = new Array(rows * cols);
+    const prev = new Array(rows * cols);
+    for (let i = 0; i < fScore.length; ++i) {
+        fScore[i] = 1e9;
+        visited[i] = false;
+        prev[i] = i;
+    }
+
+    const pq = new PriorityQueue();
+    pq.push({ idx: startIdx, weight: getManhattanDistance(startR, startC, endR, endC), gScore: 0 });
+    fScore[startIdx] = getManhattanDistance(startR, startC, endR, endC);
+
+    while (!pq._isEmpty()) {
+        const current = pq.pop();
+        if (visited[current.idx]) continue;
+        visited[current.idx] = true;
+        const row = Math.floor(current.idx / cols);
+        const col = current.idx % cols;
+        setTimeout(() => {
+            $(`td[id=${row}-${col}]`).addClass('visited');
+        }, 200);
+        if (current.idx == endIdx) {
+            console.log(`found a path of ${current.gScore} nodes`);
+            setTimeout(() => {
+                animatePath(prev, current.idx);
+            }, 4000);
+            return;
+        }
+        const newGScore = current.gScore + 1;
+        if (row > 0 && cells[row - 1][col] != 1 && fScore[get1DIdx(row - 1, col)] > getManhattanDistance(row - 1, col, endR, endC) + newGScore) {
+            fScore[get1DIdx(row - 1, col)] = getManhattanDistance(row - 1, col, endR, endC) + newGScore;
+            prev[get1DIdx(row - 1, col)] = current.idx;
+            pq.push({ idx: get1DIdx(row - 1, col), weight: fScore[get1DIdx(row - 1, col)], gScore: newGScore });
+        }
+        if (row < rows - 1 && cells[row + 1][col] != 1 && fScore[get1DIdx(row + 1, col)] > getManhattanDistance(row + 1, col, endR, endC) + newGScore) {
+            fScore[get1DIdx(row + 1, col)] = getManhattanDistance(row + 1, col, endR, endC) + newGScore;
+            prev[get1DIdx(row + 1, col)] = current.idx;
+            pq.push({ idx: get1DIdx(row + 1, col), weight: fScore[get1DIdx(row + 1, col)], gScore: newGScore });
+        }
+        if (col > 0 && cells[row][col - 1] != 1 && fScore[get1DIdx(row, col - 1)] > getManhattanDistance(row, col - 1, endR, endC) + newGScore) {
+            fScore[get1DIdx(row, col - 1)] = getManhattanDistance(row, col - 1, endR, endC) + newGScore;
+            prev[get1DIdx(row, col - 1)] = current.idx;
+            pq.push({ idx: get1DIdx(row, col - 1), weight: fScore[get1DIdx(row, col - 1)], gScore: newGScore });
+        }
+        if (col < cols - 1 && cells[row][col + 1] != 1 && fScore[get1DIdx(row, col + 1)] > getManhattanDistance(row, col + 1, endR, endC) + newGScore) {
+            fScore[get1DIdx(row, col + 1)] = getManhattanDistance(row, col + 1, endR, endC) + newGScore;
+            prev[get1DIdx(row, col + 1)] = current.idx;
+            pq.push({ idx: get1DIdx(row, col + 1), weight: fScore[get1DIdx(row, col + 1)], gScore: newGScore });
+        }
+    }
+
+}
+
+const animatePath = (prev, end) => {
+    const stack = [];
+    let current = end;
+    while (prev[current] != current) {
+        stack.push(current);
+        current = prev[current];
+    }
+    stack.push(current);
+    animatePathHelper(stack);
+}
+
+const animatePathHelper = (stack) => {
+    setTimeout(() => {
+        if (stack.length == 0) {
+            return;
+        }
+        const current = stack.pop();
+        const row = Math.floor(current / cols);
+        const col = current % cols;
+        $(`td[id=${row}-${col}]`).addClass('path');
+        animatePathHelper(stack);
+    }, 100);
+
 }
 
 const addEventListeners = () => {
@@ -214,4 +348,89 @@ const addEventListeners = () => {
             }
         }
     });
+}
+
+
+
+//MISC functions & classes
+const shuffleArray = (array) => {
+    for (var i = array.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+}
+
+const get1DIdx = (row, col) => {
+    return row * cols + col;
+}
+
+const getManhattanDistance = (x1, y1, x2, y2) => {
+    return Math.abs(x1 - x2) + Math.abs(y1 - y2);
+}
+
+class PriorityQueue {
+
+    constructor() {
+        this._heap = [-1];
+        this._top = 1;
+        this._parent = i => (i >>> 1);
+        this._left = i => (i * 2);
+        this._right = i => (i * 2) + 1;
+    }
+
+    _size() {
+        return this._heap.length;
+    }
+
+    _isEmpty() {
+        return this._size() == 1;
+    }
+
+    push(...items) {
+        items.forEach(item => {
+            this._heap.push(item);
+            this._swim();
+        });
+    }
+
+    pop() {
+        const returnValue = this._heap[this._top];
+        const bottom = this._size() - 1;
+        if (bottom > this._top) {
+            this._swap(bottom, this._top);
+        }
+        this._heap.pop();
+        this._sink();
+        return returnValue;
+    }
+
+    _swim() {
+        let current = this._size() - 1;
+        while (current > this._top && this._less(current, this._parent(current))) {
+            this._swap(current, this._parent(current));
+            current = this._parent(current);
+        }
+    }
+
+    _sink() {
+        let current = this._top;
+        while ((this._left(current) < this._size() && this._less(this._left(current), current)) ||
+            (this._right(current) < this._size() && this._less(this._right(current), current))) {
+            let maxChild = this._right(current) < this._size() && this._less(this._right(current), this._left(current)) ? this._right(current) : this._left(current);
+            this._swap(maxChild, current);
+            current = maxChild;
+        }
+    }
+
+    _less(i, j) {
+        return this._heap[i].weight < this._heap[j].weight;
+    }
+
+    _swap(i, j) {
+        [this._heap[i], this._heap[j]] = [this._heap[j], this._heap[i]];
+    }
+
+
 }
