@@ -22,7 +22,7 @@ td.end{
     background-image: url('./icons/pin_point.svg');
     background-position: center;
     animation-name: icons;
-    animation-duration: 1.0s;
+    animation-duration: 3.0s;
     animation-fill-mode: forwards;
 }
 @keyframes wall{
