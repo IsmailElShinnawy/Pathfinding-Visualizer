@@ -156,12 +156,25 @@ const dij = () => {
         visited[i] = false;
         prev[i] = i;
     }
-
-    const pq = new PriorityQueue();
-    pq.push({ idx: startIdx, weight: 0 });
+    // console.log(startIdx, endIdx);
+    // const pq = new PriorityQueue();
+    const tmp = [];
+    // pq.push({ idx: startIdx, weight: 0 });
+    tmp.push({ idx: startIdx, weight: 0 });
     dis[startIdx] = 0;
-    while (!pq._isEmpty()) {
-        const current = pq.pop();
+    // while (!pq._isEmpty()) {
+    while (tmp.length != 0) {
+        // console.log(pq._heap.);
+        let minIdx = 0;
+        tmp.forEach((item, i) => {
+            if (item.weight < tmp[minIdx].weight) {
+                minIdx = i;
+            }
+        });
+        // const current = pq.pop();
+        const current = tmp.splice(minIdx, 1)[0];
+        // console.log(current.idx, curren);
+        if (visited[current.idx]) continue;
         visited[current.idx] = true;
         const row = Math.floor(current.idx / cols);
         const col = current.idx % cols;
@@ -175,25 +188,31 @@ const dij = () => {
             }, 4000);
             return;
         }
+        // console.log(current.idx);
         if (row > 0 && cells[row - 1][col] != 1 && dis[get1DIdx(row - 1, col)] > dis[current.idx] + 1) {
             dis[get1DIdx(row - 1, col)] = dis[current.idx] + 1;
             prev[get1DIdx(row - 1, col)] = current.idx;
-            pq.push({ idx: get1DIdx(row - 1, col), weight: dis[get1DIdx(row - 1, col)] });
-        }
-        if (row < rows - 1 && cells[row + 1][col] != 1 && dis[get1DIdx(row + 1, col)] > dis[current.idx] + 1) {
-            dis[get1DIdx(row + 1, col)] = dis[current.idx] + 1;
-            prev[get1DIdx(row + 1, col)] = current.idx;
-            pq.push({ idx: get1DIdx(row + 1, col), weight: dis[get1DIdx(row + 1, col)] });
-        }
-        if (col > 0 && cells[row][col - 1] != 1 && dis[get1DIdx(row, col - 1)] > dis[current.idx] + 1) {
-            dis[get1DIdx(row, col - 1)] = dis[current.idx] + 1;
-            prev[get1DIdx(row, col - 1)] = current.idx;
-            pq.push({ idx: get1DIdx(row, col - 1), weight: dis[get1DIdx(row, col - 1)] });
+            // pq.push({ idx: get1DIdx(row - 1, col), weight: dis[get1DIdx(row - 1, col)] });
+            tmp.push({ idx: get1DIdx(row - 1, col), weight: dis[get1DIdx(row - 1, col)] });
         }
         if (col < cols - 1 && cells[row][col + 1] != 1 && dis[get1DIdx(row, col + 1)] > dis[current.idx] + 1) {
             dis[get1DIdx(row, col + 1)] = dis[current.idx] + 1;
             prev[get1DIdx(row, col + 1)] = current.idx;
-            pq.push({ idx: get1DIdx(row, col + 1), weight: dis[get1DIdx(row, col + 1)] });
+            // pq.push({ idx: get1DIdx(row, col + 1), weight: dis[get1DIdx(row, col + 1)] });
+            tmp.push({ idx: get1DIdx(row, col + 1), weight: dis[get1DIdx(row, col + 1)] });
+
+        }
+        if (row < rows - 1 && cells[row + 1][col] != 1 && dis[get1DIdx(row + 1, col)] > dis[current.idx] + 1) {
+            dis[get1DIdx(row + 1, col)] = dis[current.idx] + 1;
+            prev[get1DIdx(row + 1, col)] = current.idx;
+            // pq.push({ idx: get1DIdx(row + 1, col), weight: dis[get1DIdx(row + 1, col)] });
+            tmp.push({ idx: get1DIdx(row + 1, col), weight: dis[get1DIdx(row + 1, col)] });
+        }
+        if (col > 0 && cells[row][col - 1] != 1 && dis[get1DIdx(row, col - 1)] > dis[current.idx] + 1) {
+            dis[get1DIdx(row, col - 1)] = dis[current.idx] + 1;
+            prev[get1DIdx(row, col - 1)] = current.idx;
+            // pq.push({ idx: get1DIdx(row, col - 1), weight: dis[get1DIdx(row, col - 1)] });
+            tmp.push({ idx: get1DIdx(row, col - 1), weight: dis[get1DIdx(row, col - 1)] });
         }
     }
     console.log('no path :(');
@@ -209,56 +228,88 @@ const astar = () => {
     const endR = parseInt(endId[0]);
     const endC = parseInt(endId[1]);
     const fScore = new Array(rows * cols);
-    const visited = new Array(rows * cols);
+    const gScore = new Array(rows * cols);
+    // const visited = new Array(rows * cols);
     const prev = new Array(rows * cols);
     for (let i = 0; i < fScore.length; ++i) {
         fScore[i] = 1e9;
-        visited[i] = false;
+        gScore[i] = 1e9;
+        // visited[i] = false;
         prev[i] = i;
     }
 
-    const pq = new PriorityQueue();
-    pq.push({ idx: startIdx, weight: getManhattanDistance(startR, startC, endR, endC), gScore: 0 });
+    // const pq = new PriorityQueue();
+    const tmp = [];
+    // pq.push({ idx: startIdx, weight: getManhattanDistance(startR, startC, endR, endC), gScore: 0 });
+    tmp.push({ idx: startIdx, weight: getManhattanDistance(startR, startC, endR, endC) });
     fScore[startIdx] = getManhattanDistance(startR, startC, endR, endC);
+    gScore[startIdx] = 0;
 
-    while (!pq._isEmpty()) {
-        const current = pq.pop();
-        if (visited[current.idx]) continue;
-        visited[current.idx] = true;
+    console.log(startIdx);
+    // while (!pq._isEmpty()) {
+    while (tmp.length != 0) {
+        let minIdx = 0;
+        tmp.forEach((item, i) => {
+            if (fScore[item.idx] <= fScore[tmp[minIdx].idx]) {
+                minIdx = i;
+            }
+        });
+        // const current = pq.pop();
+        const current = tmp.splice(minIdx, 1)[0];
+        console.log(current);
+        // if (visited[current.idx]) continue;
+        // visited[current.idx] = true;
         const row = Math.floor(current.idx / cols);
         const col = current.idx % cols;
         setTimeout(() => {
             $(`td[id=${row}-${col}]`).addClass('visited');
         }, 200);
         if (current.idx == endIdx) {
-            console.log(`found a path of ${current.gScore} nodes`);
+            console.log(`found a path of ${gScore[current.idx]} nodes`);
             setTimeout(() => {
                 animatePath(prev, current.idx);
             }, 4000);
             return;
         }
-        const newGScore = current.gScore + 1;
-        if (row > 0 && cells[row - 1][col] != 1 && fScore[get1DIdx(row - 1, col)] > getManhattanDistance(row - 1, col, endR, endC) + newGScore) {
+        const newGScore = gScore[current.idx] + 1;
+        // if (row > 0 && cells[row - 1][col] != 1 && fScore[get1DIdx(row - 1, col)] > getManhattanDistance(row - 1, col, endR, endC) + newGScore) {
+        if (row > 0 && cells[row - 1][col] != 1 && gScore[get1DIdx(row - 1, col)] > newGScore) {
+            gScore[get1DIdx(row - 1, col)] = newGScore;
             fScore[get1DIdx(row - 1, col)] = getManhattanDistance(row - 1, col, endR, endC) + newGScore;
             prev[get1DIdx(row - 1, col)] = current.idx;
-            pq.push({ idx: get1DIdx(row - 1, col), weight: fScore[get1DIdx(row - 1, col)], gScore: newGScore });
+            // pq.push({ idx: get1DIdx(row - 1, col), weight: fScore[get1DIdx(row - 1, col)], gScore: newGScore });
+            if (!tmp.some(e => e.idx == get1DIdx(row - 1, col)))
+                tmp.push({ idx: get1DIdx(row - 1, col), weight: fScore[get1DIdx(row - 1, col)] });
         }
-        if (row < rows - 1 && cells[row + 1][col] != 1 && fScore[get1DIdx(row + 1, col)] > getManhattanDistance(row + 1, col, endR, endC) + newGScore) {
-            fScore[get1DIdx(row + 1, col)] = getManhattanDistance(row + 1, col, endR, endC) + newGScore;
-            prev[get1DIdx(row + 1, col)] = current.idx;
-            pq.push({ idx: get1DIdx(row + 1, col), weight: fScore[get1DIdx(row + 1, col)], gScore: newGScore });
-        }
-        if (col > 0 && cells[row][col - 1] != 1 && fScore[get1DIdx(row, col - 1)] > getManhattanDistance(row, col - 1, endR, endC) + newGScore) {
-            fScore[get1DIdx(row, col - 1)] = getManhattanDistance(row, col - 1, endR, endC) + newGScore;
-            prev[get1DIdx(row, col - 1)] = current.idx;
-            pq.push({ idx: get1DIdx(row, col - 1), weight: fScore[get1DIdx(row, col - 1)], gScore: newGScore });
-        }
-        if (col < cols - 1 && cells[row][col + 1] != 1 && fScore[get1DIdx(row, col + 1)] > getManhattanDistance(row, col + 1, endR, endC) + newGScore) {
+        if (col < cols - 1 && cells[row][col + 1] != 1 && gScore[get1DIdx(row, col + 1)] > newGScore) {
+            gScore[get1DIdx(row, col + 1)] = newGScore;
             fScore[get1DIdx(row, col + 1)] = getManhattanDistance(row, col + 1, endR, endC) + newGScore;
             prev[get1DIdx(row, col + 1)] = current.idx;
-            pq.push({ idx: get1DIdx(row, col + 1), weight: fScore[get1DIdx(row, col + 1)], gScore: newGScore });
+            // pq.push({ idx: get1DIdx(row, col + 1), weight: fScore[get1DIdx(row, col + 1)], gScore: newGScore });
+            if (!tmp.some(e => e.idx == get1DIdx(row, col + 1)))
+                tmp.push({ idx: get1DIdx(row, col + 1), weight: fScore[get1DIdx(row, col + 1)] });
         }
+        // if (row < rows - 1 && cells[row + 1][col] != 1 && fScore[get1DIdx(row + 1, col)] > getManhattanDistance(row + 1, col, endR, endC) + newGScore) {
+        if (row < rows - 1 && cells[row + 1][col] != 1 && gScore[get1DIdx(row + 1, col)] > newGScore) {
+            gScore[get1DIdx(row + 1, col)] = newGScore;
+            fScore[get1DIdx(row + 1, col)] = getManhattanDistance(row + 1, col, endR, endC) + newGScore;
+            prev[get1DIdx(row + 1, col)] = current.idx;
+            // pq.push({ idx: get1DIdx(row + 1, col), weight: fScore[get1DIdx(row + 1, col)], gScore: newGScore });
+            if (!tmp.some(e => e.idx == get1DIdx(row + 1, col)))
+                tmp.push({ idx: get1DIdx(row + 1, col), weight: fScore[get1DIdx(row + 1, col)] });
+        }
+        // if (col > 0 && cells[row][col - 1] != 1 && fScore[get1DIdx(row, col - 1)] > getManhattanDistance(row, col - 1, endR, endC) + newGScore) {
+        if (col > 0 && cells[row][col - 1] != 1 && gScore[get1DIdx(row, col - 1)] > newGScore) {
+            gScore[get1DIdx(row, col - 1)] = newGScore;
+            fScore[get1DIdx(row, col - 1)] = getManhattanDistance(row, col - 1, endR, endC) + newGScore;
+            prev[get1DIdx(row, col - 1)] = current.idx;
+            // pq.push({ idx: get1DIdx(row, col - 1), weight: fScore[get1DIdx(row, col - 1)], gScore: newGScore });
+            if (!tmp.some(e => e.idx == get1DIdx(row, col - 1)))
+                tmp.push({ idx: get1DIdx(row, col - 1), weight: fScore[get1DIdx(row, col - 1)] });
+        }
+        // if (col < cols - 1 && cells[row][col + 1] != 1 && fScore[get1DIdx(row, col + 1)] > getManhattanDistance(row, col + 1, endR, endC) + newGScore) {
     }
+    console.log('no path');
 
 }
 
@@ -283,7 +334,7 @@ const animatePathHelper = (stack) => {
         const col = current % cols;
         $(`td[id=${row}-${col}]`).addClass('path');
         animatePathHelper(stack);
-    }, 100);
+    }, 50);
 
 }
 
@@ -368,6 +419,7 @@ const get1DIdx = (row, col) => {
 
 const getManhattanDistance = (x1, y1, x2, y2) => {
     return Math.abs(x1 - x2) + Math.abs(y1 - y2);
+    // return Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2);
 }
 
 class PriorityQueue {
@@ -390,6 +442,7 @@ class PriorityQueue {
 
     push(...items) {
         items.forEach(item => {
+            item.ts = this._size();
             this._heap.push(item);
             this._swim();
         });
@@ -425,7 +478,8 @@ class PriorityQueue {
     }
 
     _less(i, j) {
-        return this._heap[i].weight < this._heap[j].weight;
+        // return this._heap[i].weight <= this._heap[j].weight;
+        return this._heap[i].weight == this._heap[j].weight ? this._heap[i].ts > this._heap[j].ts : this._heap[i].weight <= this._heap[j].weight;
     }
 
     _swap(i, j) {
