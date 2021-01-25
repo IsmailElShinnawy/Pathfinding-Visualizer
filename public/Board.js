@@ -1,5 +1,5 @@
-const size = 25;
-const cells = []; //0 -> empty, 1 -> wall, 2 -> weight, 3 -> start, 4 -> end
+const size = 23;
+const cells = []; //0 -> empty, 1 -> wall, 2 -> weight, 3 -> start, 4 -> end, 5 -> visited, 6 -> path
 const visited = [];
 const rows = Math.floor(($(window).height() - 300) / size);
 const cols = Math.floor($(window).width() / size);
@@ -33,12 +33,19 @@ const clearWalls = () => {
             if (cells[r][c] == 1) {
                 cells[r][c] = 0;
             }
-            const cell = $(`td[id=${r}-${c}]`);
-            if (cell.hasClass('wall')) cell.removeClass('wall');
-            if (cell.hasClass('visited')) cell.removeClass('visited');
-            if (cell.hasClass('path')) cell.removeClass('path');
         }
     }
+    const startId = $('td.start').attr('id');
+    const endId = $('td.end').attr('id');
+    $('td').each((idx, item) => {
+        if ($(item).attr('id') === startId) {
+            $(item).attr('class', 'start');
+        } else if ($(item).attr('id') === endId) {
+            $(item).attr('class', 'end');
+        } else {
+            $(item).attr('class', '');
+        }
+    });
 }
 
 const setBorders = () => {
@@ -156,7 +163,6 @@ const dij = () => {
         visited[i] = false;
         prev[i] = i;
     }
-    // console.log(startIdx, endIdx);
     // const pq = new PriorityQueue();
     const tmp = [];
     // pq.push({ idx: startIdx, weight: 0 });
@@ -164,7 +170,6 @@ const dij = () => {
     dis[startIdx] = 0;
     // while (!pq._isEmpty()) {
     while (tmp.length != 0) {
-        // console.log(pq._heap.);
         let minIdx = 0;
         tmp.forEach((item, i) => {
             if (item.weight < tmp[minIdx].weight) {
@@ -173,7 +178,6 @@ const dij = () => {
         });
         // const current = pq.pop();
         const current = tmp.splice(minIdx, 1)[0];
-        // console.log(current.idx, curren);
         if (visited[current.idx]) continue;
         visited[current.idx] = true;
         const row = Math.floor(current.idx / cols);
@@ -188,7 +192,6 @@ const dij = () => {
             }, 4000);
             return;
         }
-        // console.log(current.idx);
         if (row > 0 && cells[row - 1][col] != 1 && dis[get1DIdx(row - 1, col)] > dis[current.idx] + 1) {
             dis[get1DIdx(row - 1, col)] = dis[current.idx] + 1;
             prev[get1DIdx(row - 1, col)] = current.idx;
@@ -229,12 +232,10 @@ const astar = () => {
     const endC = parseInt(endId[1]);
     const fScore = new Array(rows * cols);
     const gScore = new Array(rows * cols);
-    // const visited = new Array(rows * cols);
     const prev = new Array(rows * cols);
     for (let i = 0; i < fScore.length; ++i) {
         fScore[i] = 1e9;
         gScore[i] = 1e9;
-        // visited[i] = false;
         prev[i] = i;
     }
 
@@ -245,7 +246,6 @@ const astar = () => {
     fScore[startIdx] = getManhattanDistance(startR, startC, endR, endC);
     gScore[startIdx] = 0;
 
-    console.log(startIdx);
     // while (!pq._isEmpty()) {
     while (tmp.length != 0) {
         let minIdx = 0;
@@ -256,9 +256,6 @@ const astar = () => {
         });
         // const current = pq.pop();
         const current = tmp.splice(minIdx, 1)[0];
-        console.log(current);
-        // if (visited[current.idx]) continue;
-        // visited[current.idx] = true;
         const row = Math.floor(current.idx / cols);
         const col = current.idx % cols;
         setTimeout(() => {
@@ -272,7 +269,6 @@ const astar = () => {
             return;
         }
         const newGScore = gScore[current.idx] + 1;
-        // if (row > 0 && cells[row - 1][col] != 1 && fScore[get1DIdx(row - 1, col)] > getManhattanDistance(row - 1, col, endR, endC) + newGScore) {
         if (row > 0 && cells[row - 1][col] != 1 && gScore[get1DIdx(row - 1, col)] > newGScore) {
             gScore[get1DIdx(row - 1, col)] = newGScore;
             fScore[get1DIdx(row - 1, col)] = getManhattanDistance(row - 1, col, endR, endC) + newGScore;
@@ -289,7 +285,6 @@ const astar = () => {
             if (!tmp.some(e => e.idx == get1DIdx(row, col + 1)))
                 tmp.push({ idx: get1DIdx(row, col + 1), weight: fScore[get1DIdx(row, col + 1)] });
         }
-        // if (row < rows - 1 && cells[row + 1][col] != 1 && fScore[get1DIdx(row + 1, col)] > getManhattanDistance(row + 1, col, endR, endC) + newGScore) {
         if (row < rows - 1 && cells[row + 1][col] != 1 && gScore[get1DIdx(row + 1, col)] > newGScore) {
             gScore[get1DIdx(row + 1, col)] = newGScore;
             fScore[get1DIdx(row + 1, col)] = getManhattanDistance(row + 1, col, endR, endC) + newGScore;
@@ -298,7 +293,6 @@ const astar = () => {
             if (!tmp.some(e => e.idx == get1DIdx(row + 1, col)))
                 tmp.push({ idx: get1DIdx(row + 1, col), weight: fScore[get1DIdx(row + 1, col)] });
         }
-        // if (col > 0 && cells[row][col - 1] != 1 && fScore[get1DIdx(row, col - 1)] > getManhattanDistance(row, col - 1, endR, endC) + newGScore) {
         if (col > 0 && cells[row][col - 1] != 1 && gScore[get1DIdx(row, col - 1)] > newGScore) {
             gScore[get1DIdx(row, col - 1)] = newGScore;
             fScore[get1DIdx(row, col - 1)] = getManhattanDistance(row, col - 1, endR, endC) + newGScore;
@@ -307,7 +301,6 @@ const astar = () => {
             if (!tmp.some(e => e.idx == get1DIdx(row, col - 1)))
                 tmp.push({ idx: get1DIdx(row, col - 1), weight: fScore[get1DIdx(row, col - 1)] });
         }
-        // if (col < cols - 1 && cells[row][col + 1] != 1 && fScore[get1DIdx(row, col + 1)] > getManhattanDistance(row, col + 1, endR, endC) + newGScore) {
     }
     console.log('no path');
 
@@ -422,69 +415,68 @@ const getManhattanDistance = (x1, y1, x2, y2) => {
     // return Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2);
 }
 
-class PriorityQueue {
+// class PriorityQueue {
 
-    constructor() {
-        this._heap = [-1];
-        this._top = 1;
-        this._parent = i => (i >>> 1);
-        this._left = i => (i * 2);
-        this._right = i => (i * 2) + 1;
-    }
+//     constructor() {
+//         this._heap = [-1];
+//         this._top = 1;
+//         this._parent = i => (i >>> 1);
+//         this._left = i => (i * 2);
+//         this._right = i => (i * 2) + 1;
+//     }
 
-    _size() {
-        return this._heap.length;
-    }
+//     _size() {
+//         return this._heap.length;
+//     }
 
-    _isEmpty() {
-        return this._size() == 1;
-    }
+//     _isEmpty() {
+//         return this._size() == 1;
+//     }
 
-    push(...items) {
-        items.forEach(item => {
-            item.ts = this._size();
-            this._heap.push(item);
-            this._swim();
-        });
-    }
+//     push(...items) {
+//         items.forEach(item => {
+//             item.ts = this._size();
+//             this._heap.push(item);
+//             this._swim();
+//         });
+//     }
 
-    pop() {
-        const returnValue = this._heap[this._top];
-        const bottom = this._size() - 1;
-        if (bottom > this._top) {
-            this._swap(bottom, this._top);
-        }
-        this._heap.pop();
-        this._sink();
-        return returnValue;
-    }
+//     pop() {
+//         const returnValue = this._heap[this._top];
+//         const bottom = this._size() - 1;
+//         if (bottom > this._top) {
+//             this._swap(bottom, this._top);
+//         }
+//         this._heap.pop();
+//         this._sink();
+//         return returnValue;
+//     }
 
-    _swim() {
-        let current = this._size() - 1;
-        while (current > this._top && this._less(current, this._parent(current))) {
-            this._swap(current, this._parent(current));
-            current = this._parent(current);
-        }
-    }
+//     _swim() {
+//         let current = this._size() - 1;
+//         while (current > this._top && this._less(current, this._parent(current))) {
+//             this._swap(current, this._parent(current));
+//             current = this._parent(current);
+//         }
+//     }
 
-    _sink() {
-        let current = this._top;
-        while ((this._left(current) < this._size() && this._less(this._left(current), current)) ||
-            (this._right(current) < this._size() && this._less(this._right(current), current))) {
-            let maxChild = this._right(current) < this._size() && this._less(this._right(current), this._left(current)) ? this._right(current) : this._left(current);
-            this._swap(maxChild, current);
-            current = maxChild;
-        }
-    }
+//     _sink() {
+//         let current = this._top;
+//         while ((this._left(current) < this._size() && this._less(this._left(current), current)) ||
+//             (this._right(current) < this._size() && this._less(this._right(current), current))) {
+//             let maxChild = this._right(current) < this._size() && this._less(this._right(current), this._left(current)) ? this._right(current) : this._left(current);
+//             this._swap(maxChild, current);
+//             current = maxChild;
+//         }
+//     }
 
-    _less(i, j) {
-        // return this._heap[i].weight <= this._heap[j].weight;
-        return this._heap[i].weight == this._heap[j].weight ? this._heap[i].ts > this._heap[j].ts : this._heap[i].weight <= this._heap[j].weight;
-    }
+//     _less(i, j) {
+//         return this._heap[i].weight == this._heap[j].weight ? this._heap[i].ts > this._heap[j].ts : this._heap[i].weight <= this._heap[j].weight;
+//     }
 
-    _swap(i, j) {
-        [this._heap[i], this._heap[j]] = [this._heap[j], this._heap[i]];
-    }
+//     _swap(i, j) {
+//         [this._heap[i], this._heap[j]] = [this._heap[j], this._heap[i]];
+//     }
 
 
-}
+// }
