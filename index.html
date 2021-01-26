@@ -2,21 +2,54 @@
 <html>
 
 <head>
-    <title>pathfinding and mazegeneration</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Pathfinding and Maze Generation</title>
+
+    <link rel="stylesheet" href="./public/styles.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="board.js"></script>
-    <script src="index.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="./public/board.js"></script>
+    <script src="./public/index.js"></script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
-    <div class="simple-controls">
-        <button id="backtracking-maze">Generate Maze</button>
-        <button id="random-maze">Random Maze</button>
-        <button id="dij">dij</button>
-        <button id="astar">astar</button>
-        <button id="clear-board">Clear Board</button>
-    </div>
+    <nav class="navbar navbar-inverse" style="border-radius: 0">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#" id="refresh-button">Pathfinding & Maze Generation</a>
+            </div>
+            <ul class="nav navbar-nav">
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" id="pathfinding-algo" href="#">Pathfinding
+                        Algorithm
+                        <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" id="dijkstra">Dijkstra's</a></li>
+                        <li><a href="#" id="astar">A* search</a></li>
+                        <li><a href="#" id="bfs">Breadth First Search</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" id="mazegeneration-algo" href="#">Maze Generation
+                        Algorithm
+                        <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" id="random-maze">Random Noise</a></li>
+                        <li><a href="#" id="backtracking-maze">DFS and Backtracking</a></li>
+                        <li><a href="#" id="division">Recursive division</a></li>
+                    </ul>
+                </li>
+                <li><a href="#" class="btn" id="clear-board">Clear Board</a></li>
+                <li><a href="#" class="btn" id="clear-path">Clear Path</a></li>
+            </ul>
+            <button class="btn btn-success navbar-btn" id="start">
+                Visiualize!
+            </button>
+        </div>
+    </nav>
     <div id="board">
     </div>
 </body>

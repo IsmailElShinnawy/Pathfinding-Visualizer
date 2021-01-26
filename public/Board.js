@@ -1,7 +1,7 @@
-const size = 23;
-const cells = []; //0 -> empty, 1 -> wall, 2 -> weight, 3 -> start, 4 -> end, 5 -> visited, 6 -> path
+const size = 25;
+const cells = []; //0 -> empty, 1 -> wall, 2 -> weight, 3 -> start, 4 -> end
 const visited = [];
-const rows = Math.floor(($(window).height() - 300) / size);
+const rows = Math.floor(($(window).height() * .85) / size);
 const cols = Math.floor($(window).width() / size);
 let running = false;
 
@@ -49,6 +49,21 @@ const clearWalls = () => {
     });
 }
 
+const clearPath = () => {
+    const startId = $('td.start').attr('id');
+    const endId = $('td.end').attr('id');
+    $('td').each((idx, item) => {
+        $(item).removeClass('visited').removeClass('path');
+        // if ($(item).attr('id') === startId) {
+        //     $(item).attr('class', 'start');
+        // } else if ($(item).attr('id') === endId) {
+        //     $(item).attr('class', 'end');
+        // } else {
+        //     $(item).attr('class', '');
+        // }
+    });
+}
+
 const setBorders = () => {
     for (let c = 0; c < cells[0].length; ++c) {
         if (cells[0][c] != 3 && cells[0][c] != 4)
@@ -90,6 +105,7 @@ const setMaze = () => {
         }
     }
     generateMaze(cols + 1);
+    animateMaze(0);
 }
 
 const generateMaze = (idx) => {
@@ -138,6 +154,7 @@ const setNoise = () => {
                 cells[r][c] = 1;
         }
     }
+    animateMaze(0);
 }
 
 const removeWallBetween = (idx1, idx2) => {
@@ -158,6 +175,20 @@ const removeWallBetween = (idx1, idx2) => {
         if (cells[row2 - 1][col1] != 3 && cells[row2 - 1][col1] != 4)
             cells[row2 - 1][col1] = 0;
     }
+}
+
+const animateMaze = (idx) => {
+    setTimeout(() => {
+        if (idx == cells.length * cells[0].length) {
+            running = false;
+            toggleButtons();
+            return;
+        }
+        if (cells[Math.floor(idx / cols)][idx % cols] == 1) {
+            $(`td[id=${Math.floor(idx / cols)}-${idx % cols}]`).addClass('wall');
+        }
+        animateMaze(idx + 1);
+    }, 0);
 }
 
 const dijkstra = () => {

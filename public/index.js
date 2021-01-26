@@ -2,49 +2,66 @@ $(document).ready(() => {
     initialize();
     addEventListeners();
 
-    $('button#backtracking-maze').click(() => {
+    let algorithm = "";
+
+    $('#backtracking-maze').click(() => {
         if (!running) {
             running = true;
+            toggleButtons();
             clearWalls();
             setMaze();
-            animateMaze(0);
         }
     });
-    $('button#random-maze').click(() => {
+    $('#random-maze').click(() => {
         if (!running) {
             running = true;
+            toggleButtons();
             clearWalls();
             setNoise();
-            animateMaze(0);
         }
     });
-    $('button#dij').click(() => {
-        if (!running) {
-            dijkstra();
+    $('#dijkstra').click(() => {
+        algorithm = 'dijkstra';
+        $('#start').text('Visualize Dijkstra\'s');
+    });
+    $('#astar').click(() => {
+        algorithm = 'astar'
+        $('#start').text('Visualize A* Search');
+    });
+    $('#start').click(() => {
+        switch (algorithm) {
+            case 'dijkstra':
+                if (!running) {
+                    clearPath();
+                    dijkstra();
+                }
+                break;
+            case 'astar':
+                if (!running) {
+                    clearPath();
+                    astar();
+                }
+                break;
+            default: break;
         }
     });
-    $('button#astar').click(() => {
-        if (!running) {
-            astar();
-        }
-    });
-    $('button#clear-board').click(() => {
+    $('#clear-board').click(() => {
         if (!running) {
             clearWalls();
+        }
+    });
+    $('#clear-path').click(() => {
+        if (!running) {
+            clearPath();
         }
     });
 
 });
 
-const animateMaze = (idx) => {
-    setTimeout(() => {
-        if (idx == cells.length * cells[0].length) {
-            running = false;
-            return;
-        }
-        if (cells[Math.floor(idx / cols)][idx % cols] == 1) {
-            $(`td[id=${Math.floor(idx / cols)}-${idx % cols}]`).addClass('wall');
-        }
-        animateMaze(idx + 1);
-    }, 0);
+const toggleButtons = () => {
+    $('#clear-path').toggleClass('disabled');
+    $('#clear-board').toggleClass('disabled');
+    $('#start').toggleClass('disabled');
+    $('#pathfinding-algo').toggleClass('disabled');
+    $('#mazegeneration-algo').toggleClass('disabled');
 }

@@ -2,8 +2,7 @@ table{
     background: rgb(238, 237, 237);
 }
 td{
-    border: 1px solid darkgrey;
-    /* background-color: #FFFFFF; */
+    border: 1px solid #d3d2d2;
     user-select: none;
     -moz-user-select: none;
     -webkit-user-drag: none;
@@ -31,7 +30,7 @@ td.end{
 }
 td.visited{
     animation-name: visited;
-    animation-duration: 3.0s;
+    animation-duration: 1.0s;
     animation-fill-mode: forwards;
 }
 td.path{
@@ -40,19 +39,22 @@ td.path{
     animation-fill-mode: forwards;
 }
 @keyframes wall{
-    0% {background-color: #f88e8e; transform: scale(.3);}
-    50% {background-color: #ad1a1a; transform: scale(1.3);}
-    100% {background-color: #D23B3E; transform: scale(1.0); border: none}
+    0% {background-color: #a3a3a3; transform: scale(.3);}
+    50% {background-color: #696969; transform: scale(1.3);}
+    100% {background-color: #333333; transform: scale(1.0); border: none}
 }
 @keyframes visited{
-    0% {background-color: #92A1B6; transform: scale(.4);}
-    50% {background-color: #AEC0D8; transform: scale(1.3);}
-    100% {background-color: #6C82CE; transform: scale(1.0);}
+    0% {background-color: #5c5eb8; transform: scale(.3); border-radius: 10px; background-color: #FFFF00;}
+    25% {background-color: #3c88f1; transform: scale(.5); border-radius: 10px}
+    50% {background-color: #387dd8; transform: scale(1.4); border-radius: 10px}
+    75% {background-color: #1351a3; transform: scale(1.1);}
+    100% {background-color: #1537b4; transform: scale(1.0);}
 
 }
 @keyframes path{
-    0% {background-color: #6C82CE; transform: scale(.4);}
-    100% {background-color: #292BB8; transform: scale(1.1);}
+    0% {background-color: #a5f1a5; transform: scale(.4); border-radius: 10px}
+    50% {background-color: #059205; transform: scale(1.1); border-radius: 10px;border: none}
+    100% {background-color: #5cb85c; transform: scale(1.0); border: none}
 }
 @keyframes icons{
     0% {transform: scale(.3)}
