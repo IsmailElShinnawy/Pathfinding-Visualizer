@@ -3,6 +3,7 @@ const cells = []; //0 -> empty, 1 -> wall, 2 -> weight, 3 -> start, 4 -> end, 5 
 const visited = [];
 const rows = Math.floor(($(window).height() - 300) / size);
 const cols = Math.floor($(window).width() / size);
+let running = false;
 
 const initialize = () => {
     $('div#board').html('<table id="board" style="border-collapse: collapse"></table>');
@@ -130,6 +131,15 @@ const generateMaze = (idx) => {
 
 }
 
+const setNoise = () => {
+    for (let r = 0; r < rows; ++r) {
+        for (let c = 0; c < cols; ++c) {
+            if (cells[r][c] != 3 && cells[r][c] != 4 && Math.random() < 0.3)
+                cells[r][c] = 1;
+        }
+    }
+}
+
 const removeWallBetween = (idx1, idx2) => {
     const row1 = Math.floor(idx1 / cols);
     const row2 = Math.floor(idx2 / cols);
@@ -150,7 +160,8 @@ const removeWallBetween = (idx1, idx2) => {
     }
 }
 
-const dij = () => {
+const dijkstra = () => {
+    running = true;
     const startId = $('td[class=start]').attr('id').split('-');
     const endId = $('td[class=end]').attr('id').split('-');
     const startIdx = get1DIdx(parseInt(startId[0]), parseInt(startId[1]));
@@ -168,8 +179,18 @@ const dij = () => {
     // pq.push({ idx: startIdx, weight: 0 });
     tmp.push({ idx: startIdx, weight: 0 });
     dis[startIdx] = 0;
+    dijkstraHelper(tmp, endIdx, dis, visited, prev);
     // while (!pq._isEmpty()) {
-    while (tmp.length != 0) {
+    // while (tmp.length != 0) {
+    // }
+}
+const dijkstraHelper = (tmp, endIdx, dis, visited, prev) => {
+    setTimeout(() => {
+        if (tmp.length == 0) {
+            console.log('no path');
+            running = false;
+            return;
+        }
         let minIdx = 0;
         tmp.forEach((item, i) => {
             if (item.weight < tmp[minIdx].weight) {
@@ -178,18 +199,17 @@ const dij = () => {
         });
         // const current = pq.pop();
         const current = tmp.splice(minIdx, 1)[0];
-        if (visited[current.idx]) continue;
+        if (visited[current.idx]) {
+            dijkstraHelper(tmp, endIdx, dis, visited, prev);
+            return;
+        };
         visited[current.idx] = true;
         const row = Math.floor(current.idx / cols);
         const col = current.idx % cols;
-        setTimeout(() => {
-            $(`td[id=${row}-${col}]`).addClass('visited');
-        }, 200);
+        $(`td[id=${row}-${col}]`).addClass('visited');
         if (current.idx == endIdx) {
             console.log(`found a path of ${dis[endIdx]} nodes`);
-            setTimeout(() => {
-                animatePath(prev, current.idx);
-            }, 4000);
+            animatePath(prev, current.idx);
             return;
         }
         if (row > 0 && cells[row - 1][col] != 1 && dis[get1DIdx(row - 1, col)] > dis[current.idx] + 1) {
@@ -217,11 +237,12 @@ const dij = () => {
             // pq.push({ idx: get1DIdx(row, col - 1), weight: dis[get1DIdx(row, col - 1)] });
             tmp.push({ idx: get1DIdx(row, col - 1), weight: dis[get1DIdx(row, col - 1)] });
         }
-    }
-    console.log('no path :(');
+        dijkstraHelper(tmp, endIdx, dis, visited, prev);
+    }, 20);
 }
 
 const astar = () => {
+    running = true;
     const startId = $('td[class=start]').attr('id').split('-');
     const endId = $('td[class=end]').attr('id').split('-');
     const startIdx = get1DIdx(parseInt(startId[0]), parseInt(startId[1]));
@@ -247,7 +268,18 @@ const astar = () => {
     gScore[startIdx] = 0;
 
     // while (!pq._isEmpty()) {
-    while (tmp.length != 0) {
+    // while (tmp.length != 0) {
+
+    // }
+    astarHelper(tmp, endIdx, endR, endC, fScore, gScore, prev);
+}
+
+const astarHelper = (tmp, endIdx, endR, endC, fScore, gScore, prev) => {
+    setTimeout(() => {
+        if (tmp.length == 0) {
+            running = false;
+            return;
+        }
         let minIdx = 0;
         tmp.forEach((item, i) => {
             if (fScore[item.idx] <= fScore[tmp[minIdx].idx]) {
@@ -258,14 +290,10 @@ const astar = () => {
         const current = tmp.splice(minIdx, 1)[0];
         const row = Math.floor(current.idx / cols);
         const col = current.idx % cols;
-        setTimeout(() => {
-            $(`td[id=${row}-${col}]`).addClass('visited');
-        }, 200);
+        $(`td[id=${row}-${col}]`).addClass('visited');
         if (current.idx == endIdx) {
             console.log(`found a path of ${gScore[current.idx]} nodes`);
-            setTimeout(() => {
-                animatePath(prev, current.idx);
-            }, 4000);
+            animatePath(prev, current.idx);
             return;
         }
         const newGScore = gScore[current.idx] + 1;
@@ -301,8 +329,8 @@ const astar = () => {
             if (!tmp.some(e => e.idx == get1DIdx(row, col - 1)))
                 tmp.push({ idx: get1DIdx(row, col - 1), weight: fScore[get1DIdx(row, col - 1)] });
         }
-    }
-    console.log('no path');
+        astarHelper(tmp, endIdx, endR, endC, fScore, gScore, prev);
+    }, 20);
 
 }
 
@@ -320,6 +348,7 @@ const animatePath = (prev, end) => {
 const animatePathHelper = (stack) => {
     setTimeout(() => {
         if (stack.length == 0) {
+            running = false;
             return;
         }
         const current = stack.pop();
@@ -334,61 +363,65 @@ const animatePathHelper = (stack) => {
 const addEventListeners = () => {
     let mouseDown = false;
     let selected = -1;
-
-    $('div#board').mouseleave(() => {
-        mouseDown = false;
-    });
     $('td[id]').on({
         mousedown: (e) => {
-            mouseDown = true;
-            let id = $(e.target).attr('id').split('-');
-            let row = id[0];
-            let col = id[1];
-            selected = cells[row][col];
-            let classList = $(e.target).attr('class').split(/\s+/);
-            if (classList.length == 0 || (!classList.includes('start') && !classList.includes('end'))) {
-                $(e.target).toggleClass('wall');
-                cells[row][col] = $(e.target).hasClass('wall') ? 1 : 0;
-            }
-        },
-        mouseup: (e) => {
-            let id = $(e.target).attr('id').split('-');
-            let row = id[0];
-            let col = id[1];
-            if (selected == 3 || selected == 4) {
-                $(e.target).removeClass('wall');
-                cells[row][col] = selected;
-            }
-            mouseDown = false;
-            selected = -1;
-        },
-        mouseenter: (e) => {
-            let id = $(e.target).attr('id').split('-');
-            let row = id[0];
-            let col = id[1];
-            if (selected == 3) {
-                $(e.target).addClass('start');
-            } else if (selected == 4) {
-                $(e.target).addClass('end');
-            } else if (mouseDown) {
+            if (!running) {
+                mouseDown = true;
+                let id = $(e.target).attr('id').split('-');
+                let row = id[0];
+                let col = id[1];
+                selected = cells[row][col];
                 let classList = $(e.target).attr('class').split(/\s+/);
-                if (!classList.includes('start') && !classList.includes('end')) {
+                if (classList.length == 0 || (!classList.includes('start') && !classList.includes('end'))) {
                     $(e.target).toggleClass('wall');
                     cells[row][col] = $(e.target).hasClass('wall') ? 1 : 0;
                 }
             }
         },
+        mouseup: (e) => {
+            if (!running) {
+                let id = $(e.target).attr('id').split('-');
+                let row = id[0];
+                let col = id[1];
+                if (selected == 3 || selected == 4) {
+                    $(e.target).removeClass('wall');
+                    cells[row][col] = selected;
+                }
+                mouseDown = false;
+                selected = -1;
+            }
+        },
+        mouseenter: (e) => {
+            if (!running) {
+                let id = $(e.target).attr('id').split('-');
+                let row = id[0];
+                let col = id[1];
+                if (selected == 3) {
+                    $(e.target).addClass('start');
+                } else if (selected == 4) {
+                    $(e.target).addClass('end');
+                } else if (mouseDown) {
+                    let classList = $(e.target).attr('class').split(/\s+/);
+                    if (!classList.includes('start') && !classList.includes('end')) {
+                        $(e.target).toggleClass('wall');
+                        cells[row][col] = $(e.target).hasClass('wall') ? 1 : 0;
+                    }
+                }
+            }
+        },
         mouseleave: (e) => {
-            let id = $(e.target).attr('id').split('-');
-            let row = id[0];
-            let col = id[1];
-            let classList = $(e.target).attr('class').split(/\s+/);
-            if (selected == 3) {
-                $(e.target).removeClass('start');
-                cells[row][col] = cells[row][col] == 3 ? 0 : cells[row][col];
-            } else if (selected == 4) {
-                $(e.target).removeClass('end');
-                cells[row][col] = cells[row][col] == 4 ? 0 : cells[row][col];
+            if (!running) {
+                let id = $(e.target).attr('id').split('-');
+                let row = id[0];
+                let col = id[1];
+                let classList = $(e.target).attr('class').split(/\s+/);
+                if (selected == 3) {
+                    $(e.target).removeClass('start');
+                    cells[row][col] = cells[row][col] == 3 ? 0 : cells[row][col];
+                } else if (selected == 4) {
+                    $(e.target).removeClass('end');
+                    cells[row][col] = cells[row][col] == 4 ? 0 : cells[row][col];
+                }
             }
         }
     });
@@ -412,71 +445,4 @@ const get1DIdx = (row, col) => {
 
 const getManhattanDistance = (x1, y1, x2, y2) => {
     return Math.abs(x1 - x2) + Math.abs(y1 - y2);
-    // return Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2);
 }
-
-// class PriorityQueue {
-
-//     constructor() {
-//         this._heap = [-1];
-//         this._top = 1;
-//         this._parent = i => (i >>> 1);
-//         this._left = i => (i * 2);
-//         this._right = i => (i * 2) + 1;
-//     }
-
-//     _size() {
-//         return this._heap.length;
-//     }
-
-//     _isEmpty() {
-//         return this._size() == 1;
-//     }
-
-//     push(...items) {
-//         items.forEach(item => {
-//             item.ts = this._size();
-//             this._heap.push(item);
-//             this._swim();
-//         });
-//     }
-
-//     pop() {
-//         const returnValue = this._heap[this._top];
-//         const bottom = this._size() - 1;
-//         if (bottom > this._top) {
-//             this._swap(bottom, this._top);
-//         }
-//         this._heap.pop();
-//         this._sink();
-//         return returnValue;
-//     }
-
-//     _swim() {
-//         let current = this._size() - 1;
-//         while (current > this._top && this._less(current, this._parent(current))) {
-//             this._swap(current, this._parent(current));
-//             current = this._parent(current);
-//         }
-//     }
-
-//     _sink() {
-//         let current = this._top;
-//         while ((this._left(current) < this._size() && this._less(this._left(current), current)) ||
-//             (this._right(current) < this._size() && this._less(this._right(current), current))) {
-//             let maxChild = this._right(current) < this._size() && this._less(this._right(current), this._left(current)) ? this._right(current) : this._left(current);
-//             this._swap(maxChild, current);
-//             current = maxChild;
-//         }
-//     }
-
-//     _less(i, j) {
-//         return this._heap[i].weight == this._heap[j].weight ? this._heap[i].ts > this._heap[j].ts : this._heap[i].weight <= this._heap[j].weight;
-//     }
-
-//     _swap(i, j) {
-//         [this._heap[i], this._heap[j]] = [this._heap[j], this._heap[i]];
-//     }
-
-
-// }

@@ -12,7 +12,7 @@ td{
 }
 td.wall{
     animation-name: wall;
-    animation-duration: 1.0s;
+    animation-duration: 0.3s;
     animation-fill-mode: forwards;
 }
 td.start{
