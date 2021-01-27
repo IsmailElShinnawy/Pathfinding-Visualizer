@@ -75,10 +75,10 @@ td.path{
 
 .tutorial{
     position: absolute;
-    left: 25%;
+    left: 27%;
     top: 15%;
-    width: 50%;
-    height: 70%;
+    width: 900px;
+    height: 550px;
     border: 1px solid black;
     background-color: white;
     padding: 25px;
@@ -97,6 +97,17 @@ td.path{
     text-align: center;
 }
 .tutorial nav{
-    position: relative;
-    top: 10%;
+    width: 850px;
+    padding: 0;
+    position: absolute;
+    bottom: 5%;
+}
+
+@media screen and (max-width: 1600px){
+    .tutorial{
+        width: 700px;
+    }
+    .tutorial nav{
+        width: 650px;
+    }
 }
