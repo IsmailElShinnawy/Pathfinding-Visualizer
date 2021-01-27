@@ -30,6 +30,7 @@
                         <li><a href="#" id="dijkstra">Dijkstra's</a></li>
                         <li><a href="#" id="astar">A* search</a></li>
                         <li><a href="#" id="bfs">Breadth First Search</a></li>
+                        <li><a href="#" id="dfs">Depth First Search</a></li>
                     </ul>
                 </li>
                 <li class="dropdown">
@@ -37,20 +38,212 @@
                         Algorithm
                         <span class="caret"></span></a>
                     <ul class="dropdown-menu">
-                        <li><a href="#" id="random-maze">Random Noise</a></li>
+                        <li><a href="#" id="random-maze">Random Maze</a></li>
+                        <li><a href="#" id="random-weighted-maze">Random Weighted Maze</a></li>
                         <li><a href="#" id="backtracking-maze">DFS and Backtracking</a></li>
-                        <li><a href="#" id="division">Recursive division</a></li>
                     </ul>
                 </li>
                 <li><a href="#" class="btn" id="clear-board">Clear Board</a></li>
                 <li><a href="#" class="btn" id="clear-path">Clear Path</a></li>
+                <li><a href="#" class="btn" id="clear-weights">Clear Weights</a></li>
             </ul>
             <button class="btn btn-success navbar-btn" id="start">
                 Visiualize!
             </button>
+            <ul class="nav navbar-nav navbar-right">
+                <button type="button" class="btn btn-success navbar-btn" id="view-tutorial">View Tutorial</button>
+                <button type="button" class="btn btn-danger navbar-btn" id="weight">Weight</button>
+            </ul>
         </div>
     </nav>
     <div id="board">
+    </div>
+    <div class="tutorial" id="tutorial">
+        <div id="page1" style="display: block">
+            <h1 id="title">Welcome To <br> Pathfinding and Maze Generation World</h1>
+            <h3 id="subtitle">By Ismail El Shinnawy</h3>
+            <br>
+            <p id="description">This web app is made to visiualize different <i>Pathfinding</i> &amp; <i>Maze
+                    Generation</i>
+                Algorithms. The source code for this project is available at
+                <a id="repo-link" target="_new" href="https://github.com/IsmailElShinnawy/Pathfinding-Visualizer">this
+                    Github
+                    repo</a>.
+                The project is inspired from <a target="_new"
+                    href="https://www.youtube.com/channel/UCaO6VoaYJv4kS-TQO_M-N_g">Clément
+                    Mihailescu</a> <a target="_new" href="https://github.com/clementmihailescu/Pathfinding-Visualizer">
+                    project
+                </a>.
+            </p>
+            <p>This is a short tutorial to walk you through using the app, but you can skip it if you want :)</p>
+        </div>
+        <div id="page2" style="display:none">
+            <h2 id="title">Blocks you'll see</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div
+                        style="margin: auto; width: 25px; height: 25px; animation-name: wall; animation-duration: 3.0s; animation-iteration-count: infinite">
+                    </div>
+                    <br>
+                    <p style="text-align: center">A Wall Block: Impenetrable for pathfinding algorithms</p>
+                </div>
+                <div class="col-md-4">
+                    <div
+                        style="margin: auto; width: 25px; height: 25px; animation-name: icons; animation-duration: 3.0s; animation-iteration-count: infinite; background-image: url(./public/icons/weight.svg)">
+                    </div>
+                    <br>
+                    <p style="text-align: center">A Weight Block: A move to this block costs 20 units rather than 1
+                        like
+                        the empty cells</p>
+                </div>
+                <div class=" col-md-4">
+                    <div
+                        style="margin: auto; width: 25px; height: 25px; animation-name: visited; animation-duration: 3.0s; animation-iteration-count: infinite">
+                    </div>
+                    <br>
+                    <p style="text-align: center">A Visited Block: A block that the pathfinding algorithm searched
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div
+                        style="margin: auto; width: 25px; height: 25px; animation-name: path; animation-duration: 3.0s; animation-iteration-count: infinite">
+                    </div>
+                    <br>
+                    <p style="text-align: center">A Path Block: A block that is part of the found path from start to
+                        end
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <div
+                        style="margin: auto; width: 25px; height: 25px; animation-name: icons; animation-duration: 3.0s; animation-iteration-count: infinite; background-image: url(./public/icons/arrow.svg)">
+                    </div>
+                    <br>
+                    <p style="text-align: center">Start icon: The starting point of the pathfinding algorithm</p>
+                </div>
+                <div class=" col-md-4">
+                    <div
+                        style="margin: auto; width: 25px; height: 25px; animation-name: icons; animation-duration: 3.0s; animation-iteration-count: infinite; background-image: url(./public/icons/pin_point.svg)">
+                    </div>
+                    <br>
+                    <p style="text-align: center">End icon: The target point of the pathfinding algorithm</p>
+                </div>
+            </div>
+        </div>
+        <div id="page3" style="display:none">
+            <h2 id="title">Moving Start and End</h2>
+            <p style="text-align: center">You can change the start and end positions by simply dragging and dropping
+                the
+                icons</p>
+            <br>
+            <div style="width: 300px; margin: auto">
+                <img src="./public/gifs/moving_start_end.gif" alt="moving start and end gif" width="300px"
+                    style="margin: auto">
+            </div>
+        </div>
+        <div id="page4" style="display:none">
+            <h2 id="title">Placing Walls &amp; Weights</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <p style="text-align: center">You can place/remove walls by choosing a grid cell or draging over
+                        a
+                        group of
+                        them</p>
+                    <br>
+                    <br>
+                    <div style="width: 200px; margin: auto">
+                        <img src="./public/gifs/walls.gif" alt="placing walls gif" width="200px">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <p style="text-align: center">You can place/remove weights by activating the weight mode by
+                        pressing
+                        <kbd>w</kbd> and then choosing a grid cell or draging over a
+                        group of
+                        them
+                    </p>
+                    <div style="width: 200px; margin: auto">
+                        <img src="./public/gifs/weights.gif" alt="placing weights gif" width="200px">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <p style="text-align: center">You can also place both walls and weights
+                    </p>
+                    <br>
+                    <br>
+                    <br>
+                    <div style="width: 200px; margin: auto">
+                        <img src="./public/gifs/wallsandweights.gif" alt="placing walls and weights gif" width="200px">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="page5" style="display:none">
+            <h2 id="title">Different Algorithms</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Pathfinding algorithms</h4>
+                    <ul>
+                        <li>Dijkstra's Algorithm: Is a weighted algorithm that guarantees shortest path</li>
+                        <li>A Star Search Algorithm: Is a weighted algorithm that guarantees shortest path using a
+                            heuristic</li>
+                        <li>A Breadth First Search (BFS) Algorithm: Is a unweighted algorithm that guarantees
+                            shortest
+                            path </li>
+                        <li>A Depth First Search (DFS) Algorithm: Is a unweighted algorithm that doesn't guarantees
+                            shortest
+                            path </li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <p>You can choose the algorithm that you want to visiualize from here and then press the green
+                        visiualize button</p>
+                    <div style="width: 200px; margin: auto;">
+                        <img src="./public/screenshots/pathfinding-algos.png" alt="pathfinding algorithms dropdown menu"
+                            width="200px">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="page6" style="display:none">
+            <h2 id="title">Different Maze Generators</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Maze generators</h4>
+                    <ul>
+                        <li>Random Maze: Randomly scatters walls over the grid</li>
+                        <li>Random Weighted Maze: Randomly scatters weights over the grid</li>
+                        <li>DFS and Backtracking: Generates a random maze that is guranteed to have a path from
+                            start to
+                            end </li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <p>You can choose the generator that you want to visiualize from here and it will automatically
+                        start</p>
+                    <div style="width: 200px; margin: auto;">
+                        <img src="./public/screenshots/maze-generators.png" alt="pathfinding algorithms dropdown menu"
+                            width="200px">
+                    </div>
+                </div>
+            </div>
+            <br>
+            <p style="text-align: center;">And that is it 🥳!! You can start experimentting on your own now. :)</p>
+            <p style="text-align: center;">you can always come back to the tutorial using the button at the top right
+            </p>
+        </div>
+        <nav>
+            <button class="btn btn-success" id="skip-tutorial">Skip tutorial</button>
+            <div class="btn-group navbar-right">
+                <button id="tut-page1" type="button" class="btn btn-default active">1</button>
+                <button id="tut-page2" type="button" class="btn btn-default">2</button>
+                <button id="tut-page3" type="button" class="btn btn-default">3</button>
+                <button id="tut-page4" type="button" class="btn btn-default">4</button>
+                <button id="tut-page5" type="button" class="btn btn-default">5</button>
+                <button id="tut-page6" type="button" class="btn btn-default">6</button>
+            </div>
+        </nav>
     </div>
 </body>
 

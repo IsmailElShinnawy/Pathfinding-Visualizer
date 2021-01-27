@@ -1,3 +1,6 @@
+body{
+    position: relative;
+}
 table{
     background: rgb(238, 237, 237);
 }
@@ -12,6 +15,13 @@ td{
 td.wall{
     animation-name: wall;
     animation-duration: 0.3s;
+    animation-fill-mode: forwards;
+}
+td.weight{
+    background-image: url('./icons/weight.svg');
+    background-position: center;
+    animation-name: icons;
+    animation-duration: 1.0s;
     animation-fill-mode: forwards;
 }
 td.start{
@@ -60,4 +70,33 @@ td.path{
     0% {transform: scale(.3)}
     50% {transform: scale(1.1)}
     100% {transform: scale(1.)}
+}
+
+
+.tutorial{
+    position: absolute;
+    left: 25%;
+    top: 20%;
+    width: 50%;
+    height: 60%;
+    border: 1px solid black;
+    background-color: white;
+    padding: 25px;
+}
+.tutorial #title{
+    text-align: center;
+    font-size: 60px;
+    margin: 0;
+}
+.tutorial #subtitle{
+    text-align: right;
+    margin-top: 0;
+    margin-right: 20px;
+}
+.tutorial #description{
+    text-align: center;
+}
+.tutorial nav{
+    position: relative;
+    top: 10%;
 }

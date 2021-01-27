@@ -28,7 +28,7 @@ const initialize = () => {
     $('table#board').html(tableHTML);
 }
 
-const clearWalls = () => {
+const clearBoard = () => {
     for (let r = 0; r < rows; ++r) {
         for (let c = 0; c < cols; ++c) {
             if (cells[r][c] == 1) {
@@ -49,18 +49,22 @@ const clearWalls = () => {
     });
 }
 
+const clearWeights = () => {
+    for (let r = 0; r < rows; ++r) {
+        for (let c = 0; c < cols; ++c) {
+            if (cells[r][c] == 2) {
+                cells[r][c] = 0;
+            }
+        }
+    }
+    $('td').each((idx, item) => {
+        $(item).removeClass('weight');
+    });
+}
+
 const clearPath = () => {
-    const startId = $('td.start').attr('id');
-    const endId = $('td.end').attr('id');
     $('td').each((idx, item) => {
         $(item).removeClass('visited').removeClass('path');
-        // if ($(item).attr('id') === startId) {
-        //     $(item).attr('class', 'start');
-        // } else if ($(item).attr('id') === endId) {
-        //     $(item).attr('class', 'end');
-        // } else {
-        //     $(item).attr('class', '');
-        // }
     });
 }
 
@@ -147,11 +151,16 @@ const generateMaze = (idx) => {
 
 }
 
-const setNoise = () => {
+const setNoise = (weighted = false) => {
     for (let r = 0; r < rows; ++r) {
         for (let c = 0; c < cols; ++c) {
-            if (cells[r][c] != 3 && cells[r][c] != 4 && Math.random() < 0.3)
-                cells[r][c] = 1;
+            if (cells[r][c] != 3 && cells[r][c] != 4 && Math.random() < 0.3) {
+                if (weighted) {
+                    cells[r][c] = 2;
+                } else {
+                    cells[r][c] = 1;
+                }
+            }
         }
     }
     animateMaze(0);
@@ -186,6 +195,8 @@ const animateMaze = (idx) => {
         }
         if (cells[Math.floor(idx / cols)][idx % cols] == 1) {
             $(`td[id=${Math.floor(idx / cols)}-${idx % cols}]`).addClass('wall');
+        } else if (cells[Math.floor(idx / cols)][idx % cols] == 2) {
+            $(`td[id=${Math.floor(idx / cols)}-${idx % cols}]`).addClass('weight');
         }
         animateMaze(idx + 1);
     }, 0);
@@ -218,7 +229,7 @@ const dijkstra = () => {
 const dijkstraHelper = (tmp, endIdx, dis, visited, prev) => {
     setTimeout(() => {
         if (tmp.length == 0) {
-            console.log('no path');
+            toggleButtons();
             running = false;
             return;
         }
@@ -243,27 +254,27 @@ const dijkstraHelper = (tmp, endIdx, dis, visited, prev) => {
             animatePath(prev, current.idx);
             return;
         }
-        if (row > 0 && cells[row - 1][col] != 1 && dis[get1DIdx(row - 1, col)] > dis[current.idx] + 1) {
-            dis[get1DIdx(row - 1, col)] = dis[current.idx] + 1;
+        if (row > 0 && cells[row - 1][col] != 1 && dis[get1DIdx(row - 1, col)] > dis[current.idx] + ($(`td[id=${row - 1}-${col}]`).hasClass('weight') ? 20 : 1)) {
+            dis[get1DIdx(row - 1, col)] = dis[current.idx] + ($(`td[id=${row - 1}-${col}]`).hasClass('weight') ? 20 : 1);
             prev[get1DIdx(row - 1, col)] = current.idx;
             // pq.push({ idx: get1DIdx(row - 1, col), weight: dis[get1DIdx(row - 1, col)] });
             tmp.push({ idx: get1DIdx(row - 1, col), weight: dis[get1DIdx(row - 1, col)] });
         }
-        if (col < cols - 1 && cells[row][col + 1] != 1 && dis[get1DIdx(row, col + 1)] > dis[current.idx] + 1) {
-            dis[get1DIdx(row, col + 1)] = dis[current.idx] + 1;
+        if (col < cols - 1 && cells[row][col + 1] != 1 && dis[get1DIdx(row, col + 1)] > dis[current.idx] + ($(`td[id=${row}-${col + 1}]`).hasClass('weight') ? 20 : 1)) {
+            dis[get1DIdx(row, col + 1)] = dis[current.idx] + ($(`td[id=${row}-${col + 1}]`).hasClass('weight') ? 20 : 1);
             prev[get1DIdx(row, col + 1)] = current.idx;
             // pq.push({ idx: get1DIdx(row, col + 1), weight: dis[get1DIdx(row, col + 1)] });
             tmp.push({ idx: get1DIdx(row, col + 1), weight: dis[get1DIdx(row, col + 1)] });
 
         }
-        if (row < rows - 1 && cells[row + 1][col] != 1 && dis[get1DIdx(row + 1, col)] > dis[current.idx] + 1) {
-            dis[get1DIdx(row + 1, col)] = dis[current.idx] + 1;
+        if (row < rows - 1 && cells[row + 1][col] != 1 && dis[get1DIdx(row + 1, col)] > dis[current.idx] + ($(`td[id=${row + 1}-${col}]`).hasClass('weight') ? 20 : 1)) {
+            dis[get1DIdx(row + 1, col)] = dis[current.idx] + ($(`td[id=${row + 1}-${col}]`).hasClass('weight') ? 20 : 1);
             prev[get1DIdx(row + 1, col)] = current.idx;
             // pq.push({ idx: get1DIdx(row + 1, col), weight: dis[get1DIdx(row + 1, col)] });
             tmp.push({ idx: get1DIdx(row + 1, col), weight: dis[get1DIdx(row + 1, col)] });
         }
-        if (col > 0 && cells[row][col - 1] != 1 && dis[get1DIdx(row, col - 1)] > dis[current.idx] + 1) {
-            dis[get1DIdx(row, col - 1)] = dis[current.idx] + 1;
+        if (col > 0 && cells[row][col - 1] != 1 && dis[get1DIdx(row, col - 1)] > dis[current.idx] + ($(`td[id=${row}-${col - 1}]`).hasClass('weight') ? 20 : 1)) {
+            dis[get1DIdx(row, col - 1)] = dis[current.idx] + ($(`td[id=${row}-${col - 1}]`).hasClass('weight') ? 20 : 1);
             prev[get1DIdx(row, col - 1)] = current.idx;
             // pq.push({ idx: get1DIdx(row, col - 1), weight: dis[get1DIdx(row, col - 1)] });
             tmp.push({ idx: get1DIdx(row, col - 1), weight: dis[get1DIdx(row, col - 1)] });
@@ -309,6 +320,7 @@ const astarHelper = (tmp, endIdx, endR, endC, fScore, gScore, prev) => {
     setTimeout(() => {
         if (tmp.length == 0) {
             running = false;
+            toggleButtons();
             return;
         }
         let minIdx = 0;
@@ -321,13 +333,13 @@ const astarHelper = (tmp, endIdx, endR, endC, fScore, gScore, prev) => {
         const current = tmp.splice(minIdx, 1)[0];
         const row = Math.floor(current.idx / cols);
         const col = current.idx % cols;
-        $(`td[id=${row}-${col}]`).addClass('visited');
+        $(`td[id = ${row}-${col}]`).addClass('visited');
         if (current.idx == endIdx) {
             console.log(`found a path of ${gScore[current.idx]} nodes`);
             animatePath(prev, current.idx);
             return;
         }
-        const newGScore = gScore[current.idx] + 1;
+        let newGScore = gScore[current.idx] + ($(`td[id=${row - 1}-${col}]`).hasClass('weight') ? 20 : 1);
         if (row > 0 && cells[row - 1][col] != 1 && gScore[get1DIdx(row - 1, col)] > newGScore) {
             gScore[get1DIdx(row - 1, col)] = newGScore;
             fScore[get1DIdx(row - 1, col)] = getManhattanDistance(row - 1, col, endR, endC) + newGScore;
@@ -336,6 +348,7 @@ const astarHelper = (tmp, endIdx, endR, endC, fScore, gScore, prev) => {
             if (!tmp.some(e => e.idx == get1DIdx(row - 1, col)))
                 tmp.push({ idx: get1DIdx(row - 1, col), weight: fScore[get1DIdx(row - 1, col)] });
         }
+        newGScore = gScore[current.idx] + ($(`td[id=${row}-${col + 1}]`).hasClass('weight') ? 20 : 1);
         if (col < cols - 1 && cells[row][col + 1] != 1 && gScore[get1DIdx(row, col + 1)] > newGScore) {
             gScore[get1DIdx(row, col + 1)] = newGScore;
             fScore[get1DIdx(row, col + 1)] = getManhattanDistance(row, col + 1, endR, endC) + newGScore;
@@ -344,6 +357,7 @@ const astarHelper = (tmp, endIdx, endR, endC, fScore, gScore, prev) => {
             if (!tmp.some(e => e.idx == get1DIdx(row, col + 1)))
                 tmp.push({ idx: get1DIdx(row, col + 1), weight: fScore[get1DIdx(row, col + 1)] });
         }
+        newGScore = gScore[current.idx] + ($(`td[id=${row + 1}-${col}]`).hasClass('weight') ? 20 : 1);
         if (row < rows - 1 && cells[row + 1][col] != 1 && gScore[get1DIdx(row + 1, col)] > newGScore) {
             gScore[get1DIdx(row + 1, col)] = newGScore;
             fScore[get1DIdx(row + 1, col)] = getManhattanDistance(row + 1, col, endR, endC) + newGScore;
@@ -352,6 +366,7 @@ const astarHelper = (tmp, endIdx, endR, endC, fScore, gScore, prev) => {
             if (!tmp.some(e => e.idx == get1DIdx(row + 1, col)))
                 tmp.push({ idx: get1DIdx(row + 1, col), weight: fScore[get1DIdx(row + 1, col)] });
         }
+        newGScore = gScore[current.idx] + ($(`td[id=${row}-${col - 1}]`).hasClass('weight') ? 20 : 1);
         if (col > 0 && cells[row][col - 1] != 1 && gScore[get1DIdx(row, col - 1)] > newGScore) {
             gScore[get1DIdx(row, col - 1)] = newGScore;
             fScore[get1DIdx(row, col - 1)] = getManhattanDistance(row, col - 1, endR, endC) + newGScore;
@@ -365,6 +380,127 @@ const astarHelper = (tmp, endIdx, endR, endC, fScore, gScore, prev) => {
 
 }
 
+const bfs = () => {
+    running = true;
+    const startId = $('td[class=start]').attr('id').split('-');
+    const endId = $('td[class=end]').attr('id').split('-');
+    const startIdx = get1DIdx(parseInt(startId[0]), parseInt(startId[1]));
+    const endIdx = get1DIdx(parseInt(endId[0]), parseInt(endId[1]));
+    const prev = new Array(rows * cols);
+    const visited = new Array(rows * cols);
+    for (let i = 0; i < prev.length; ++i) {
+        prev[i] = i;
+        visited[i] = false;
+    }
+    const q = [];
+    q.push(startIdx);
+    bfsHelper(q, endIdx, prev, visited);
+}
+
+const bfsHelper = (q, endIdx, prev, visited) => {
+    setTimeout(() => {
+        if (q.length == 0) {
+            running = false;
+            toggleButtons();
+            return;
+        }
+        const current = q.splice(0, 1)[0];
+        // console.log(current);
+        const row = Math.floor(current / cols);
+        const col = current % cols;
+        $(`td[id=${row}-${col}]`).addClass('visited');
+        if (visited[get1DIdx(row, col)]) {
+            bfsHelper(q, endIdx, prev, visited);
+            return;
+        }
+        visited[current] = true;
+        if (current == endIdx) {
+            animatePath(prev, current);
+            return;
+        }
+
+        if (row > 0 && cells[row - 1][col] != 1 && !visited[get1DIdx(row - 1, col)]) {
+            prev[get1DIdx(row - 1, col)] = current;
+            q.push(get1DIdx(row - 1, col));
+        }
+        if (col < cols - 1 && cells[row][col + 1] != 1 && !visited[get1DIdx(row, col + 1)]) {
+            prev[get1DIdx(row, col + 1)] = current;
+            q.push(get1DIdx(row, col + 1));
+        }
+        if (row < rows - 1 && cells[row + 1][col] != 1 && !visited[get1DIdx(row + 1, col)]) {
+            prev[get1DIdx(row + 1, col)] = current;
+            q.push(get1DIdx(row + 1, col));
+        }
+        if (col > 0 && cells[row][col - 1] != 1 && !visited[get1DIdx(row, col - 1)]) {
+            prev[get1DIdx(row, col - 1)] = current;
+            q.push(get1DIdx(row, col - 1));
+        }
+        bfsHelper(q, endIdx, prev, visited);
+    }, 20);
+}
+
+
+const dfs = () => {
+    running = true;
+    const startId = $('td[class=start]').attr('id').split('-');
+    const endId = $('td[class=end]').attr('id').split('-');
+    const startIdx = get1DIdx(parseInt(startId[0]), parseInt(startId[1]));
+    const endIdx = get1DIdx(parseInt(endId[0]), parseInt(endId[1]));
+    const prev = new Array(rows * cols);
+    const visited = new Array(rows * cols);
+    for (let i = 0; i < prev.length; ++i) {
+        prev[i] = i;
+        visited[i] = false;
+    }
+    const stack = [];
+    stack.push(startIdx);
+    dfsHelper(stack, endIdx, prev, visited);
+}
+
+const dfsHelper = (stack, endIdx, prev, visited) => {
+    setTimeout(() => {
+        if (stack.length == 0) {
+            running = false;
+            toggleButtons();
+            return;
+        }
+        const current = stack.pop();
+        // console.log(current);
+        const row = Math.floor(current / cols);
+        const col = current % cols;
+        $(`td[id=${row}-${col}]`).addClass('visited');
+        if (visited[get1DIdx(row, col)]) {
+            dfsHelper(stack, endIdx, prev, visited);
+            return;
+        }
+        visited[current] = true;
+        if (current == endIdx) {
+            animatePath(prev, current);
+            return;
+        }
+
+        if (row > 0 && cells[row - 1][col] != 1 && !visited[get1DIdx(row - 1, col)]) {
+            prev[get1DIdx(row - 1, col)] = current;
+            stack.push(get1DIdx(row - 1, col));
+        }
+        if (col < cols - 1 && cells[row][col + 1] != 1 && !visited[get1DIdx(row, col + 1)]) {
+            prev[get1DIdx(row, col + 1)] = current;
+            stack.push(get1DIdx(row, col + 1));
+        }
+        if (row < rows - 1 && cells[row + 1][col] != 1 && !visited[get1DIdx(row + 1, col)]) {
+            prev[get1DIdx(row + 1, col)] = current;
+            stack.push(get1DIdx(row + 1, col));
+        }
+        if (col > 0 && cells[row][col - 1] != 1 && !visited[get1DIdx(row, col - 1)]) {
+            prev[get1DIdx(row, col - 1)] = current;
+            stack.push(get1DIdx(row, col - 1));
+        }
+        dfsHelper(stack, endIdx, prev, visited);
+    }, 20);
+}
+
+
+
 const animatePath = (prev, end) => {
     const stack = [];
     let current = end;
@@ -376,17 +512,18 @@ const animatePath = (prev, end) => {
     animatePathHelper(stack);
 }
 
-const animatePathHelper = (stack) => {
+const animatePathHelper = (stack, prev) => {
     setTimeout(() => {
         if (stack.length == 0) {
             running = false;
+            toggleButtons();
             return;
         }
         const current = stack.pop();
         const row = Math.floor(current / cols);
         const col = current % cols;
         $(`td[id=${row}-${col}]`).addClass('path');
-        animatePathHelper(stack);
+        animatePathHelper(stack, current);
     }, 50);
 
 }
@@ -394,6 +531,23 @@ const animatePathHelper = (stack) => {
 const addEventListeners = () => {
     let mouseDown = false;
     let selected = -1;
+    let wPressed = false;
+    $(document).keypress((e) => {
+        let keycode = e.keyCode ? e.keyCode : e.which;
+        if (keycode == '119') {
+            wPressed = !wPressed;
+            $('#weight').toggleClass('btn-danger').toggleClass('btn-success');
+        }
+    });
+    $('#weight').click(() => {
+        wPressed = !wPressed;
+        $('#weight').toggleClass('btn-danger').toggleClass('btn-success');
+    });
+    $('div#board').on({
+        mouseleave: (e) => {
+            mouseDown = false;
+        }
+    });
     $('td[id]').on({
         mousedown: (e) => {
             if (!running) {
@@ -404,7 +558,14 @@ const addEventListeners = () => {
                 selected = cells[row][col];
                 let classList = $(e.target).attr('class').split(/\s+/);
                 if (classList.length == 0 || (!classList.includes('start') && !classList.includes('end'))) {
-                    $(e.target).toggleClass('wall');
+                    if (wPressed) {
+                        if (!$(e.target).hasClass('wall') && algorithm !== 'bfs' && algorithm !== 'dfs') {
+                            $(e.target).removeClass('path').removeClass('visited').toggleClass('weight');
+                        }
+                    } else {
+                        if (!$(e.target).hasClass('weight'))
+                            $(e.target).removeClass('path').removeClass('visited').toggleClass('wall');
+                    }
                     cells[row][col] = $(e.target).hasClass('wall') ? 1 : 0;
                 }
             }
@@ -434,7 +595,13 @@ const addEventListeners = () => {
                 } else if (mouseDown) {
                     let classList = $(e.target).attr('class').split(/\s+/);
                     if (!classList.includes('start') && !classList.includes('end')) {
-                        $(e.target).toggleClass('wall');
+                        if (wPressed) {
+                            if (!$(e.target).hasClass('wall') && algorithm !== 'bfs' && algorithm !== 'dfs')
+                                $(e.target).removeClass('path').removeClass('visited').toggleClass('weight');
+                        } else {
+                            if (!$(e.target).hasClass('weight'))
+                                $(e.target).removeClass('path').removeClass('visited').toggleClass('wall');
+                        }
                         cells[row][col] = $(e.target).hasClass('wall') ? 1 : 0;
                     }
                 }
@@ -445,7 +612,6 @@ const addEventListeners = () => {
                 let id = $(e.target).attr('id').split('-');
                 let row = id[0];
                 let col = id[1];
-                let classList = $(e.target).attr('class').split(/\s+/);
                 if (selected == 3) {
                     $(e.target).removeClass('start');
                     cells[row][col] = cells[row][col] == 3 ? 0 : cells[row][col];
